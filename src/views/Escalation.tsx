@@ -121,6 +121,7 @@ export function Escalation() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="num text-sm font-semibold text-ink">{c.case_id}</span>
+                          {c.name && <span className="text-sm font-semibold text-ink">· {c.name}</span>}
                           <StatusBadge status={c.status} />
                           <span className={`text-xs px-2 py-0.5 rounded-full ${c.type === "missing" ? "bg-navy-soft text-navy" : "bg-action-soft text-action"}`}>
                             {c.type}

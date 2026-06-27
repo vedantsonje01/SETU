@@ -59,7 +59,8 @@ export function MatchCard({
             <span className="num text-sm text-muted">{match.case_id}</span>
             <InfoDot text="Confidence is a weighted blend of description (35%), age (20%), state (15%), language (10%), time (10%) and location (10%). It is decision support, not proof — always confirm identity with the family." />
           </div>
-          <p className="mt-1.5 font-semibold text-ink">
+          {match.name && <p className="mt-1.5 text-base font-bold text-ink">{match.name}</p>}
+          <p className="mt-1 font-semibold text-ink">
             Reported {match.type} at {match.center_id} · {Math.round(hoursSince(match.created_at))}h ago
           </p>
           <p className="text-sm text-muted flex items-center gap-1.5 flex-wrap">

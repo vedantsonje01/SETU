@@ -30,6 +30,7 @@ export function Intake({ mode }: { mode: IntakeMode }) {
   const { navigate, setFlow, refreshPending, lang } = useApp();
   const isFamily = mode === "family";
 
+  const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [state, setState] = useState("");
@@ -94,6 +95,7 @@ export function Intake({ mode }: { mode: IntakeMode }) {
     const zc = api.geo().zones.find((z) => z.name === zone);
     return {
       type: isFamily ? "missing" : "found",
+      name: name.trim() || undefined,
       gender, age_band: age, state, language, zone, landmark,
       lat: zc?.lat, lng: zc?.lng,
       physical_description: desc, reporter_mobile: mobile, photo: photo || undefined,
@@ -160,6 +162,11 @@ export function Intake({ mode }: { mode: IntakeMode }) {
       <div className="grid lg:grid-cols-5 gap-6 items-start">
         <div className="lg:col-span-3">
       <Panel className="p-6 grid gap-6">
+        <Field label={isFamily ? "Missing person's name (optional)" : "Name (optional)"}
+          hint="Leave blank if unknown — matching does not depend on the name.">
+          <input className={selectCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="" />
+        </Field>
+
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Gender" required error={touched && !gender ? "Required" : undefined}>
             <OptionGroup options={GENDERS} value={gender} onChange={setGender} />

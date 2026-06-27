@@ -161,6 +161,7 @@ function StatusCard({ c }: { c: CaseRecord }) {
           <div className="mt-4 rounded-[10px] bg-surface-2 border border-line p-3 text-sm flex gap-3">
             {c.photo && <img src={c.photo} alt="Reported person" className="w-20 h-20 object-cover rounded-lg border border-line shrink-0" />}
             <div className="min-w-0">
+            {c.name && <p className="font-bold text-ink">{c.name}</p>}
             <p className="num font-semibold">{c.case_id}</p>
             <p className="text-muted mt-0.5">{summary} · {c.language}</p>
             <p className="mt-1">{c.physical_description}</p>

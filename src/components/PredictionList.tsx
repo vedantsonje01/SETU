@@ -35,6 +35,7 @@ export function PredictionList({
                   <span className={`text-xs px-2 py-0.5 rounded-full ${m.type === "missing" ? "bg-navy-soft text-navy" : "bg-action-soft text-action"}`}>{m.type}</span>
                 </div>
                 <p className="text-sm text-muted truncate">
+                  {m.name && <span className="font-semibold text-ink">{m.name} · </span>}
                   {m.gender}, {m.age_band}, {m.state} · {m.language}
                   {m.physical_description ? ` · ${m.physical_description}` : ""}
                 </p>
