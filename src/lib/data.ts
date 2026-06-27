@@ -83,12 +83,6 @@ function mapStatus(s: string): { status: CaseStatus; hospital?: string } {
   }
 }
 
-const toISO = (s: string) => {
-  // "2027-07-28 06:01" -> ISO
-  const d = new Date(s.replace(" ", "T"));
-  return isNaN(+d) ? new Date().toISOString() : d.toISOString();
-};
-
 const tokenFor = (caseId: string) => {
   const n = parseInt(caseId.replace(/\D/g, ""), 10) || 0;
   return String(100000 + ((n * 6133) % 900000));
@@ -117,17 +111,40 @@ export async function loadGeo(): Promise<GeoData> {
   };
 }
 
+/* The synthetic dataset spreads reports across ~2 months. For a mela dashboard
+   that should read in hours/days, we compress every timestamp into a recent
+   rolling window (newest report = "now", oldest = WINDOW_H ago) while keeping
+   order and relative spacing. Ages then look realistic and 12h+ flags fire. */
+const WINDOW_H = 120; // 5 days
+
 export async function loadCases(geo: GeoData): Promise<CaseRecord[]> {
   const rows = await fetchCSV("Synthetic_Missing_Persons_2500.csv");
+
+  // original timestamps (ms) to find the span
+  const times = rows.map((r) => +new Date(r.reported_at.replace(" ", "T"))).filter((t) => !isNaN(t));
+  const minT = Math.min(...times), maxT = Math.max(...times);
+  const span = maxT - minT || 1;
+  const windowMs = WINDOW_H * 3600 * 1000;
+  const compress = (raw: string) => {
+    const t = +new Date(raw.replace(" ", "T"));
+    if (isNaN(t)) return new Date(maxT).toISOString();
+    return new Date(maxT - ((maxT - t) / span) * windowMs).toISOString();
+  };
+
   return rows.map((r) => {
     const [lat, lng] = LOCATION_GEO[r.last_seen_location] ?? [20.0, 73.78];
     const { status, hospital } = mapStatus(r.status);
     const rh = parseFloat(r.resolution_hours);
+    const reported = compress(r.reported_at);
+    // Name is OPTIONAL: keep it on roughly half of records (deterministic) so the
+    // UI visibly mixes named and name-less cases, reflecting real intake.
+    const seq = Number(r.case_id.split("-").pop()) || 0;
+    const name = seq % 2 === 0 ? "" : (r.missing_person_name || "");
     return {
       case_id: r.case_id,
       type: "missing",
       status,
-      name: r.missing_person_name || "",
+      name,
       gender: r.gender,
       age_band: r.age_band,
       state: r.state,
@@ -140,8 +157,8 @@ export async function loadCases(geo: GeoData): Promise<CaseRecord[]> {
       reporter_mobile: r.reporter_mobile || "",
       center_id: r.reporting_center,
       token: tokenFor(r.case_id),
-      reported_at: toISO(r.reported_at),
-      created_at: toISO(r.reported_at),
+      reported_at: reported,
+      created_at: reported,
       resolution_hours: isNaN(rh) ? undefined : rh,
       hospital,
     } as CaseRecord;
